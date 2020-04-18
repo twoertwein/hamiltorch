@@ -185,7 +185,6 @@ def leapfrog(
 
         def fixed_point_momentum(params, momentum):
             momentum_old = momentum.clone()
-            # print('s')
             for i in range(fixed_point_max_iterations):
                 momentum_prev = momentum.clone()
                 params = params.detach().requires_grad_()
@@ -336,7 +335,6 @@ def leapfrog(
                         "Warning: reached jitter_max_tries {}".format(jitter_max_tries)
                     )
                     raise util.LogProbError()
-                    # break
             momentum -= 0.5 * step_size * params.grad
 
             ret_params.append(params)
@@ -681,7 +679,6 @@ def hamiltonian(
         )
         fish_inverse_momentum = cholesky_inverse(fish, momentum)
         quadratic_term = torch.matmul(momentum.view(1, -1), fish_inverse_momentum)
-        # print((momentum ** 2 *  fish.diag() ** -1).sum() - quadratic_term)
         hamiltonian = -log_prob + 0.5 * quadratic_term + ham_func(params)
         if util.has_nan_or_inf(hamiltonian):
             print(
@@ -749,6 +746,10 @@ def sample(
             "Sampling ({}; {})".format(sampler, integrator), num_samples, "Samples"
         )
     for n in range(num_samples):
+        if n <= burn and len(ret_params) > 1:
+            # keep only last parameter during burn-in phase
+            ret_params = ret_params[-1:]
+
         if debug:
             util.progress_bar_update(n)
         try:
@@ -851,7 +852,6 @@ def sample(
             if rho >= torch.log(torch.rand(1)):
                 if debug:
                     print("Accept rho: {}".format(rho))
-                # ret_params.append(params)
                 if n > burn:
                     ret_params.extend(leapfrog_params)
             else:
@@ -912,10 +912,7 @@ def sample(
         util.progress_bar_end(
             "Acceptance Rate {:.2f}".format(1 - num_rejected / num_samples)
         )  # need to adapt for burn
-    if NUTS and debug:
-        return list(map(lambda t: t.detach(), ret_params)), step_size
-    else:
-        return list(map(lambda t: t.detach(), ret_params))
+    return list(map(lambda t: t.detach(), ret_params))
 
 
 def define_model_log_prob(
