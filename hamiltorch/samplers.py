@@ -749,6 +749,9 @@ def sample(
         if n <= burn and len(ret_params) > 1:
             # keep only last parameter during burn-in phase
             ret_params = ret_params[-1:]
+        # release gradients
+        ret_params[-1].detach_()
+        ret_params[-1].requires_grad_(True)
 
         if debug:
             util.progress_bar_update(n)
