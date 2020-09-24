@@ -25,7 +25,7 @@ def read_package_variable(key):
 check_python_version()
 setup(
     name='hamiltorch',
-    version=read_package_variable('__version__'),
+    version="0.3.1.dev3",
     description='A PyTorch-based library for Riemannian Manifold Hamiltonian Monte Carlo (RMHMC)',
     author='Adam D. Cobb, Atilim Gunes Baydin',
     author_email='acobb@robots.ox.ac.uk',
